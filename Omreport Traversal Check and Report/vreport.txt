@@ -1,0 +1,40 @@
+List of Virtual Disks on Controller PERC H730P Mini (Embedded)
+
+Controller PERC H730P Mini (Embedded)
+ID                                : 0
+Status                            : Ok
+Name                              : OS
+State                             : Ready
+Hot Spare Policy violated         : Not Assigned
+Encrypted                         : No
+Layout                            : RAID-10
+Size                              : 557.75 GB (598879502336 bytes)
+T10 Protection Information Status : No
+Associated Fluid Cache State      : Not Applicable
+Device Name                       : /dev/sda
+Bus Protocol                      : SAS
+Media                             : HDD
+Read Policy                       : Read Ahead
+Write Policy                      : Write Back
+Cache Policy                      : Not Applicable
+Stripe Element Size               : 64 KB
+Disk Cache Policy                 : Unchanged
+
+ID                                : 1
+Status                            : Ok
+Name                              : Database
+State                             : Ready
+Hot Spare Policy violated         : Not Assigned
+Encrypted                         : No
+Layout                            : RAID-10
+Size                              : 557.75 GB (598879502336 bytes)
+T10 Protection Information Status : No
+Associated Fluid Cache State      : Not Applicable
+Device Name                       : /dev/sdb
+Bus Protocol                      : SAS
+Media                             : HDD
+Read Policy                       : Read Ahead
+Write Policy                      : Write Back
+Cache Policy                      : Not Applicable
+Stripe Element Size               : 64 KB
+Disk Cache Policy                 : Unchanged
