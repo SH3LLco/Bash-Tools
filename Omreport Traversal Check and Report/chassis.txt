@@ -1,0 +1,19 @@
+omreport chassis
+
+Health
+
+Main System Chassis
+
+SEVERITY : COMPONENT
+Ok       : Fans
+Ok       : Intrusion
+Ok       : Memory
+Ok       : Power Supplies
+Ok       : Power Management
+Ok       : Processors
+Ok       : Temperatures
+Ok       : Voltages
+Ok       : Hardware Log
+Ok       : Batteries
+
+For further help, type the command followed by -?

@@ -1,0 +1,45 @@
+omreport storage enclosure
+
+List of Enclosures in the System
+
+Enclosure(s) on Controller PERC H730P Mini (Embedded)
+
+ID                          : 0:1
+Status                      : Ok
+Name                        : Backplane
+State                       : Ready
+Connector                   : 0
+Target ID                   : Not Applicable
+Configuration               : Not Applicable
+Firmware Version            : 3.31
+Downstream Firmware Version : Not Applicable
+Service Tag                 : Not Applicable
+Express Service Code        : Not Applicable
+Asset Tag                   : Not Applicable
+Asset Name                  : Not Applicable
+Backplane Part Number       : Not Applicable
+Split Bus Part Number       : Not Applicable
+Enclosure Part Number       : Not Applicable
+SAS Address                 : 0x500056B3460DA5FD
+Enclosure Alarm             : Not Applicable
+
+Enclosure(s) on Controller PERC H730P Adapter (Slot 3)
+ID                          : 0:1
+Status                      : Ok
+Name                        : Backplane
+State                       : Ready
+Connector                   : 0
+Target ID                   : Not Applicable
+Configuration               : Not Applicable
+Firmware Version            : 3.31
+Downstream Firmware Version : Not Applicable
+Service Tag                 : Not Applicable
+Express Service Code        : Not Applicable
+Asset Tag                   : Not Applicable
+Asset Name                  : Not Applicable
+Backplane Part Number       : Not Applicable
+Split Bus Part Number       : Not Applicable
+Enclosure Part Number       : Not Applicable
+SAS Address                 : 0x500056B3460DA5FD
+Enclosure Alarm             : Not Applicable
+
