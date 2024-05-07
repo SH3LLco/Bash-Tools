@@ -1,0 +1,93 @@
+List of Controllers in the system
+
+Controller
+ID                                            : 0
+Status                                        : not ok
+Name                                          : PERC H730P Mini
+Slot ID                                       : Embedded
+State                                         : Ready
+Firmware Version                              : 25.4.1.0004
+Minimum Required Firmware Version             : Not Applicable
+Driver Version                                : 07.714.04.00-rh1
+Minimum Required Driver Version               : Not Applicable
+Storport Driver Version                       : Not Applicable
+Minimum Required Storport Driver Version      : Not Applicable
+Number of Connectors                          : 1
+Rebuild Rate                                  : 30%
+BGI Rate                                      : 30%
+Check Consistency Rate                        : 30%
+Reconstruct Rate                              : 30%
+Alarm State                                   : Not Applicable
+Cluster Mode                                  : Not Applicable
+SCSI Initiator ID                             : Not Applicable
+Cache Memory Size                             : 2048 MB
+Patrol Read Mode                              : Auto
+Patrol Read State                             : Stopped
+Patrol Read Rate                              : 30%
+Patrol Read Iterations                        : 380
+Abort Check Consistency on Error              : Disabled
+Allow Revertible Hot Spare and Replace Member : Enabled
+Load Balance                                  : Not Applicable
+Auto Replace Member on Predictive Failure     : Disabled
+Redundant Path view                           : Not Applicable
+CacheCade Capable                             : Not Applicable
+Persistent Hot Spare                          : Disabled
+Encryption Capable                            : Yes
+Encryption Key Present                        : No
+Encryption Mode                               : None
+Preserved Cache                               : Not Applicable
+Spin Down Unconfigured Drives                 : Disabled
+Spin Down Hot Spares                          : Disabled
+Spin Down Configured Drives                   : Disabled
+Automatic Disk Power Saving (Idle C)          : Disabled
+Start Time (HH:MM)                            : Not Applicable
+Time Interval for Spin Up (in Hours)          : Not Applicable
+T10 Protection Information Capable            : No
+Non-RAID HDD Disk Cache Policy                : Unchanged
+Current Controller Mode                       : RAID
+
+Controller
+ID                                            : 1
+Status                                        : badman
+Name                                          : PERC H730P Adapter
+Slot ID                                       : PCIe Slot 3
+State                                         : Ready
+Firmware Version                              : 25.4.1.0004
+Minimum Required Firmware Version             : Not Applicable
+Driver Version                                : 07.714.04.00-rh1
+Minimum Required Driver Version               : Not Applicable
+Storport Driver Version                       : Not Applicable
+Minimum Required Storport Driver Version      : Not Applicable
+Number of Connectors                          : 1
+Rebuild Rate                                  : 30%
+BGI Rate                                      : 30%
+Check Consistency Rate                        : 30%
+Reconstruct Rate                              : 30%
+Alarm State                                   : Not Applicable
+Cluster Mode                                  : Not Applicable
+SCSI Initiator ID                             : Not Applicable
+Cache Memory Size                             : 2048 MB
+Patrol Read Mode                              : Auto
+Patrol Read State                             : Stopped
+Patrol Read Rate                              : 30%
+Patrol Read Iterations                        : 380
+Abort Check Consistency on Error              : Disabled
+Allow Revertible Hot Spare and Replace Member : Enabled
+Load Balance                                  : Not Applicable
+Auto Replace Member on Predictive Failure     : Disabled
+Redundant Path view                           : Not Applicable
+CacheCade Capable                             : Not Applicable
+Persistent Hot Spare                          : Disabled
+Encryption Capable                            : Yes
+Encryption Key Present                        : No
+Encryption Mode                               : None
+Preserved Cache                               : Not Applicable
+Spin Down Unconfigured Drives                 : Disabled
+Spin Down Hot Spares                          : Disabled
+Spin Down Configured Drives                   : Disabled
+Automatic Disk Power Saving (Idle C)          : Disabled
+Start Time (HH:MM)                            : Not Applicable
+Time Interval for Spin Up (in Hours)          : Not Applicable
+T10 Protection Information Capable            : No
+Non-RAID HDD Disk Cache Policy                : Unchanged
+Current Controller Mode                       : RAID
