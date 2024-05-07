@@ -16,11 +16,11 @@ function writeControllerToFile {
 
     # if # of issues is 0 then echo no issues, else echo each issue. 
     if [[ $reportedcontrollerissues -eq 0 ]]; then
-        for i in `seq 0 $(($controllercount - 1))`; do
+        for i in $(seq 0 $(($controllercount - 1))); do
             echo " ,Controller ${controllerids[$i]} No Issues Found" >> $file
         done
     else 
-        for i in `seq 0 $(($reportedcontrollerissues - 1))`; do
+        for i in $(seq 0 $(($reportedcontrollerissues - 1))); do
             echo "${totalcontrollerissues[$i]}" >> $file
         done
     fi
@@ -34,30 +34,87 @@ function checkCrowIssues {
     fi
 
     if [[ -z "$crow" ]]; then
-            crow="${crow}"
+        crow="${crow}"
+    else
+        crowissues=" ,${controllerid},${crow},"
+        totalcontrollerissues+=("${crowissues}")
+    fi
+}
+
+# function to check for battery issues
+function checkBrowIssues {
+    # if battery status is not ok, add to battery
+    if [[ 'Ok' != "$bstatus" ]]; then
+        brow="${brow}Status,${bstatus},"
+    fi
+
+    if [[ -z "$brow" ]]; then
+        brow="${brow}"
+    else
+        if [[ -z "${crowissues}" ]]; then
+            browissues=" ,${controllerid},Battery,${brow},"
+            totalcontrollerissues+=("${browissues}")
         else
-            crowissues=" ,${controllerid},${crow},"
-            totalcontrollerissues+=("${crowissues}")
+            browissues=" ,Battery,${brow},"
+            totalcontrollerissues+=("${browissues}")
+        fi
+    fi
+}
+
+# function to check for Enclosure issues
+function checkErowIssues {
+    # if battery status is not ok, add to battery
+    if [[ 'Ok' != "$estatus" ]]; then
+        erow="${erow}Status,${estatus},"
+    fi
+
+    if [[ -z "$erow" ]]; then
+        erow="${erow}"
+    else
+        if [[ -z "${crowissues}" ]] && [[ -z "${browissues}" ]]; then
+            erowissues=" ,${controllerid},Battery,${erow},"
+            totalcontrollerissues+=("${erowissues}")
+        else
+            erowissues=" ,Battery,${erow},"
+            totalcontrollerissues+=("${erowissues}")
+        fi
     fi
 }
 
 # function to check if vrow has data but controller is clean to avoid vrow reporting without controller context
 checkVrowIssues() {
-    # if vdisk status is not ok, add to vrow
-    if [[ 'Ok' != "$vstatus" ]]; then
-        vrow="${vrow}Status,${vstatus},"
-    fi
+    # gets vrow count
+    vrowcount="${#vstatuses[@]}"
+    
+    for y in $(seq 0 $(($vrowcount -1))); do
+        vrow=''
 
-    if [[ -z "$vrow" ]]; then
+        # sets vdisk status variable for ease of use
+        vstatus="${vstatuses[$y]}"
+
+        # if vdisk status is not ok, add to vrow
+        if [[ 'Ok' != "${vstatus}" ]]; then
+            vrow="${vrow}Status,${vstatus},"
+        fi
+
+
+        if [[ -z "$vrow" ]]; then
             vrow="${vrow}"
         else
-            if [[ -z "$crowissues" ]]; then
+            if [[ -z "${crowissues}" ]] && [[ -z "${erowissues}" ]] && [[ -z "${browissues}" ]]; then
                 vrowissues=" ,${controllerid},VDisk,${vrow},"
                 totalcontrollerissues+=("${vrowissues}")
             else
                 vrowissues=" ,VDisk,${vrow},"
                 totalcontrollerissues+=("${vrowissues}")
             fi
+        fi
+    done
+
+    if [[ -z "$vrowissues" ]]; then
+        vrowissues="$vrowissues"
+    else
+        totalcontrollerissues+=("$line")
     fi
 }
 
@@ -67,7 +124,7 @@ checkProwIssues() {
     if [[ -z "$prow" ]]; then
         prow="${prow}"
     else
-        if [[ -z "$crowissues" ]] && [[ -z "$vrowissues" ]]; then
+        if [[ -z "${crowissues}" ]] && [[ -z "${vrowissues}" ]] && [[ -z "${browissues}" ]] && [[ -z "${erowissues}" ]]; then
             prowissues=" , ,PDisk ${id},${prow},"
             mainprowissues+=("${prowissues}")
         else
@@ -81,13 +138,13 @@ checkProwIssues() {
 checkProwVrowCrow() {
     reportedprowissues="${#mainprowissues[@]}"
 
-    if [[ -z "${crowissues}" ]] && [[ -z "${vrowissues}" ]]; then
+    if [[ -z "${crowissues}" ]] && [[ -z "${vrowissues}" ]] && [[ -z "${browissues}" ]] && [[ -z "${erowissues}" ]]; then
         # if # of issues is 0 then echo no issues, else echo each issue. 
         if [[ $reportedprowissues -eq 0 ]]; then
             reportedprowissues="$reportedprowissues"
         else
             totalcontrollerissues+=(",${controllerid}")
-            for x in `seq 0 $(($reportedprowissues - 1))`; do
+            for x in $(seq 0 $(($reportedprowissues - 1))); do
                 totalcontrollerissues+=("${mainprowissues[$x]}")
             done
         fi
@@ -96,7 +153,7 @@ checkProwVrowCrow() {
         if [[ $reportedprowissues -eq 0 ]]; then
             reportedprowissues="$reportedprowissues"
         else
-            for x in `seq 0 $(($reportedprowissues - 1))`; do
+            for x in $(seq 0 $(($reportedprowissues - 1))); do
                 totalcontrollerissues+=("${mainprowissues[$x]}")
             done
         fi
@@ -106,37 +163,10 @@ checkProwVrowCrow() {
 # prowcheck if empty, does nothing, if found adds empty lines for formatting.
 function prowCheck {
     if [[ -z "$prowcheck" ]]; then
-            prowcheck="${prowcheck}"
-        else
-            totalcontrollerissues+=("$line")
-            totalcontrollerissues+=("$line")
-    fi
-}
-
-# crowadd to totalcontrollerissues
-function crowAdd {
-    if [[ -z "$crowissues" ]]; then
-            crow="${crow}"
-        else
-            totalcontrollerissues+=("${crowissues}")
-    fi
-}
-
-# prowadd to totalcontrollerissues
-function prowAdd {
-    if [[ -z "$prowissues" ]]; then
-            prow="${prow}"
-        else
-            totalcontrollerissues+=("${prowissues}")
-    fi
-}
-
-# vrowadd to totalcontrollerissues
-function vrowAdd {
-    if [[ -z "$vrowissues" ]]; then
-            vrow="${vrow}"
-        else
-            totalcontrollerissues+=("${vrowissues}")
+        prowcheck="${prowcheck}"
+    else
+        totalcontrollerissues+=("$line")
+        totalcontrollerissues+=("$line")
     fi
 }
 
@@ -153,6 +183,21 @@ function getControllers {
 # function to handle vdisk results
 function getVReport {
     echo -e "$vreport" | egrep "^\W*$1" | cut -d : -f 2- | sed 's/^ //g' | sed 's/ /_/g'
+}
+
+# function to handle chassis results
+function getChassis {
+    echo -e "$chreport" | awk -F ' : ' -v comp="$1" '$2 == comp {print $1}' | tr -d '[:space:]'
+}
+
+# function to handle battery results
+function getBattery {
+    echo -e "$breport" | egrep "^\W*$1" | cut -d : -f 2- | sed 's/^ //g' | sed 's/ /_/g'
+}
+
+# function to handle battery results
+function getEnclosure {
+    echo -e "$ereport" | egrep "^\W*$1" | cut -d : -f 2- | sed 's/^ //g' | sed 's/ /_/g'
 }
 
 # -----------------------------------------------</FUNCTIONS>-----------------------------------------------
@@ -172,7 +217,7 @@ line=' '
 
 # gets controllers and sets to variable
 # commented for testing: controller=$(omreport storage controller)
-controllers=$(cat controller1.txt)
+controllers=$(cat controller0.txt)
 
 # gets controller IDs and sets to array
 controllerids=($(getControllers "ID"))
@@ -187,28 +232,120 @@ file=$(getFileName)
 totalcontrollerissues=()
 
 # --------------------------------------------</STATIC VARIABLES>-------------------------------------------
+# ----------------------------------------------<CHASSIS CHECK>----------------------------------------------
+# omreport chassis
+chreport=$(cat chassis.txt)
+chrow=''
+chrowreport=()
 
+chfan=$(getChassis "Fans")
+chintrusion=$(getChassis "Intrusion")
+chmemory=$(getChassis "Memory")
+chpwrsup=$(getChassis "Power Supplies")
+chpwrman=$(getChassis "Power Management")
+chproc=$(getChassis "Processors")
+chtemp=$(getChassis "Temperatures")
+chvolt=$(getChassis "Voltages")
+chhdwrlog=$(getChassis "Hardware Log")
+chbatt=$(getChassis "Batteries")
+
+if [[ 'Ok' != "$chfan" ]]; then
+    chrow="Fans,${chfan},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chintrusion" ]]; then
+    chrow="Intrusion,${chintrusion},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chmemory" ]]; then
+    chrow="Memory,${chmemory},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chpwrsup" ]]; then
+    chrow="Power Supplies,${chpwrsup},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chpwrman" ]]; then
+    chrow="Power Management,${chpwrman},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chproc" ]]; then
+    chrow="Processors,${chproc},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chtemp" ]]; then
+    chrow="Temperatures,${chtemp},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chvolt" ]]; then
+    chrow="Voltages,${chvolt},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chhdwrlog" ]]; then
+    chrow="Hardware Log,${chhdwrlog},"
+    chrowreport+=(",,${chrow}")
+fi
+
+if [[ 'Ok' != "$chbatt" ]]; then
+    chrow="Batteries,${chbatt},"
+    chrowreport+=(",,${chrow}")
+fi
+
+reportedchassisissues="${#chrowreport[@]}"
+
+if [[ $reportedchassisissues -eq 0 ]]; then
+        echo ",Chassis No Issues" >> $file
+    else 
+        echo ",Chassis" >> $file
+        for i in $(seq 0 $(($reportedchassisissues - 1))); do
+            echo "${chrowreport[$i]}" >> $file
+        done
+        echo "$line" >> $file
+fi
+
+
+# ----------------------------------------------</CHASSIS LOOP>----------------------------------------------
 # -------------------------------------------<MAIN CONTROLLER LOOP>-----------------------------------------
 
 # for loop based on controller count
 for i in $(seq 0 $(($controllercount -1))); do
     
+    # get the battery report
+    # omreport storage battery
+    breport=$(cat battery0.txt)
+    bstatuses=($(getBattery "Status")) 
+    bstatus="${bstatuses[$i]}"
+    brow=''
+    browissues=''
+
+    # get the enclosure report
+    # omreport storage enclosure
+    ereport=$(cat enclosure0.txt)
+    estatuses=($(getEnclosure "Status")) 
+    estatus="${estatuses[$i]}"
+    erow=''
+    erowissues=''
+
     # get the pdisk report
     # commented for testing: preport=$(omreport storage pdisk controller=$i)
-    preport=$(cat preport1.txt)
+    preport=$(cat preport0.txt)
 
     # get the vdisk report
     # commented for testing: vreport=$(omreport storage vdisk controller=$i)
-    vreport=$(cat vreport1.txt)
+    vreport=$(cat vreport0.txt)
 
     # sets vdisk status array
     vstatuses=($(getVReport "Status"))
 
-    # sets vdisk status variable for ease of use
-    vstatus="${vstatuses[$i]}"
-
     # sets empty variable for vrow status
-    vrow=''
     vrowissues=''
 
     # gets controller status to array
@@ -240,7 +377,7 @@ for i in $(seq 0 $(($controllercount -1))); do
     drivecount=${#driveids[@]}
 
     # sets controller variable
-    controllerid="Controller $i"
+    controllerid="Controller ${i}"
 
     # prow check for formatting, if pdisk issues found, adds empty lines after pdisk list
     prowcheck=''
@@ -248,6 +385,10 @@ for i in $(seq 0 $(($controllercount -1))); do
     # checks for controller issues
     checkCrowIssues
     # crowAdd
+
+    checkBrowIssues
+
+    checkErowIssues
 
     # check for vrow and crow for formatting
     checkVrowIssues
@@ -258,7 +399,7 @@ for i in $(seq 0 $(($controllercount -1))); do
 
 # --------------------------------------------<SUB CONTROLLER LOOP>-----------------------------------------
     # for loop based on drive count
-    for j in `seq 0 $(($drivecount - 1))`; do
+    for j in $(seq 0 $(($drivecount - 1))); do
         
         # sets state variable for ease of use
         state="${states[$j]}"
@@ -321,3 +462,4 @@ done
 
 # writes rows to file
 writeControllerToFile
+exit 0
