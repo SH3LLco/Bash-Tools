@@ -1,13 +1,9 @@
 #!/bin/bash
+# Author: SH3LL
+# CoAuthor: EchoTango
+# Github: https://github.com/SH3LLco
                                                                                                                          
 # -----------------------------------------------<FUNCTIONS>-----------------------------------------------
-
-# function to get filename
-function getFileName {
-    date=$(date +%Y-%m-%d)
-    host=$(hostname | cut -f1 -d .)
-    echo "$date-$host.csv"
-}
 
 # function to check for controller issues and write to file
 function writeControllerToFile {
@@ -204,7 +200,7 @@ function getEnclosure {
 
 # --------------------------------------------<STATIC VARIABLES>--------------------------------------------
 # gets file name
-file=$(getFileName)
+file="report.csv"
 
 # gets host name
 host=$(hostname | cut -f1 -d .)
@@ -215,29 +211,27 @@ echo "${host}" >> $file
 # empty line for formatting
 line=' '
 
-# gets controllers and sets to variable
-# commented for testing: controller=$(omreport storage controller)
-controllers=$(cat controller0.txt)
-
-# gets controller IDs and sets to array
+# gets controllers and sets variables/array
+# controllers=$(cat controller0.txt) | Testing
+controllers=$(omreport storage controller)
 controllerids=($(getControllers "ID"))
-
-# gets length of controllerids
 controllercount=${#controllerids[@]}
+totalcontrollerissues=()
 
 # sets file name
 file=$(getFileName)
 
-# creates empty issue array that we will use to report issues
-totalcontrollerissues=()
+# --------------------------------------------</STATIC VARIABLES>--------------------------------------------
 
-# --------------------------------------------</STATIC VARIABLES>-------------------------------------------
 # ----------------------------------------------<CHASSIS CHECK>----------------------------------------------
-# omreport chassis
-chreport=$(cat chassis.txt)
+
+# sets chassis variables
+# chreport=$(cat chassis.txt) | Testing
+chreport=$(omreport chassis)
 chrow=''
 chrowreport=()
 
+# sets chassis components
 chfan=$(getChassis "Fans")
 chintrusion=$(getChassis "Intrusion")
 chmemory=$(getChassis "Memory")
@@ -249,6 +243,7 @@ chvolt=$(getChassis "Voltages")
 chhdwrlog=$(getChassis "Hardware Log")
 chbatt=$(getChassis "Batteries")
 
+# check components
 if [[ 'Ok' != "$chfan" ]]; then
     chrow="Fans,${chfan},"
     chrowreport+=(",,${chrow}")
@@ -299,8 +294,10 @@ if [[ 'Ok' != "$chbatt" ]]; then
     chrowreport+=(",,${chrow}")
 fi
 
+# sets reported issues to # of issues found
 reportedchassisissues="${#chrowreport[@]}"
 
+# loops through issues found and writes to file
 if [[ $reportedchassisissues -eq 0 ]]; then
         echo ",Chassis No Issues" >> $file
     else 
@@ -312,65 +309,50 @@ if [[ $reportedchassisissues -eq 0 ]]; then
 fi
 
 
-# ----------------------------------------------</CHASSIS LOOP>----------------------------------------------
+# ----------------------------------------------</CHASSIS CHECK>--------------------------------------------
+
 # -------------------------------------------<MAIN CONTROLLER LOOP>-----------------------------------------
 
 # for loop based on controller count
 for i in $(seq 0 $(($controllercount -1))); do
     
-    # get the battery report
-    # omreport storage battery
-    breport=$(cat battery0.txt)
+    # get the battery report and set variables/array
+    # breport=$(cat battery.txt) | Testing
+    breport=$(omreport storage battery)
     bstatuses=($(getBattery "Status")) 
     bstatus="${bstatuses[$i]}"
     brow=''
     browissues=''
 
-    # get the enclosure report
-    # omreport storage enclosure
-    ereport=$(cat enclosure0.txt)
+    # get the enclosure report and set variables/array
+    # ereport=$(cat enclosure.txt) | Testing
+    ereport=$(omreport storage enclosure)
     estatuses=($(getEnclosure "Status")) 
     estatus="${estatuses[$i]}"
     erow=''
     erowissues=''
 
     # get the pdisk report
-    # commented for testing: preport=$(omreport storage pdisk controller=$i)
-    preport=$(cat preport0.txt)
+    # preport=$(cat preport0.txt) | Testing
+    preport=$(omreport storage pdisk controller=$i)
 
-    # get the vdisk report
-    # commented for testing: vreport=$(omreport storage vdisk controller=$i)
-    vreport=$(cat vreport0.txt)
-
-    # sets vdisk status array
+    # get the vdisk report to array
+    # vreport=$(cat vreport0.txt) | Testing
+    vreport=$(omreport storage vdisk controller=$i)
     vstatuses=($(getVReport "Status"))
-
-    # sets empty variable for vrow status
     vrowissues=''
 
-    # gets controller status to array
+    # gets controller status to array and sets crow variables
     cstatuses=($(getControllers "Status")) 
-
-    # sets controller status variable for ease of use
     cstatus="${cstatuses[$i]}"
-
-    # sets empty variable for controller row status
     crow=''
     crowissues=''
 
-    # gets pdisk drive ids
+    # assigns pdisk variables for loop
     driveids=($(getPResult "ID"))
-
-    # gets pdisk state
     states=($(getPResult "State"))
-
-    # gets pdisk status
     statuses=($(getPResult "Status"))
-
-    # gets pdisk power status
     powerStatuses=($(getPResult "Power Status"))
-
-    # gets pdisk failure prediction
     failurePredicteds=($(getPResult "Failure Predicted"))
 
     # gets # of drives
@@ -388,12 +370,13 @@ for i in $(seq 0 $(($controllercount -1))); do
 
     checkBrowIssues
 
+    # checks for erow issues
     checkErowIssues
 
     # check for vrow and crow for formatting
     checkVrowIssues
-    # vrowAdd
 
+    # creates empty array for prow issues
     mainprowissues=()
 # ------------------------------------------</MAIN CONTROLLER LOOP>-----------------------------------------
 
@@ -401,22 +384,14 @@ for i in $(seq 0 $(($controllercount -1))); do
     # for loop based on drive count
     for j in $(seq 0 $(($drivecount - 1))); do
         
-        # sets state variable for ease of use
+        # sets pdisk variables for ease of use
         state="${states[$j]}"
-
-        # sets status variable for ease of use
         status="${statuses[$j]}"
-
-        # sets power status variable for ease of use
         powerStatus="${powerStatuses[$j]}"
-
-        # sets failure prediction variable for ease of use
         failurePredicted="${failurePredicteds[$j]}"
-
-        # sets id variable to drive id for ease of use
         id="${driveids[$j]}"
 
-        # sets empty variable for prow status
+        # sets empty variable for prow content and issues
         prow=''
         prowissues=''
 
@@ -424,37 +399,34 @@ for i in $(seq 0 $(($controllercount -1))); do
         if [[ 'Ready' != "$state" ]] && [[ 'Online' != "$state" ]]; then
             prow="${prow}State,${state},"
             prowcheck="${prow}"
-            
         fi
 
         # if status is not ok
         if [[ 'Ok' != "$status" ]]; then
             prow="${prow}Status,${status},"
             prowcheck="${prow}"
-            
         fi
 
         # if power status is not spun up
         if [[ 'Spun_Up' != "$powerStatus" ]]; then
             prow="${prow}Power,${powerStatus},"
             prowcheck="${prow}"
-            
         fi
 
         # if failure predicted
         if [[ 'No' != "$failurePredicted" ]]; then
             prow="${prow}Failure Predicted,${failurePredicted},"
             prowcheck="${prow}"
-            
         fi
 
         # checks for pdisk issues
         checkProwIssues
-        # prowAdd
     done
 
+    # checks prow vrow and crow to assign controller id if needed
     checkProwVrowCrow
 
+    # checks prow for formatting
     prowCheck
     
 # --------------------------------------------</SUB CONTROLLER LOOP>----------------------------------------
