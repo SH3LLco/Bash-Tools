@@ -27,7 +27,10 @@ USER="username" # assumes SSH key-based authentication set up for each host in t
 HOST_LIST="hosts.txt"
 
 # setup local working environment
-mkdir -p "$WORK_DIR"
+if [ ! -d "$WORK_DIR" ]; then
+    mkdir -p "$WORK_DIR"
+    echo "$WORK_DIR created."
+fi
 cd "$WORK_DIR"
 
 
@@ -58,7 +61,10 @@ do
 
     # SSH into the host, create the directory, copy and execute the script
     ssh -o BatchMode=yes "$host" << EOF
-    mkdir -p "$WORK_DIR"
+    if [ ! -d "$WORK_DIR" ]; then
+        mkdir -p "$WORK_DIR"
+        echo "$WORK_DIR created."
+    fi
     cd "$WORK_DIR"
     scp ${USER}@${LOCAL_IP}:${FILE_DIR}${SCRIPT_NAME} .
     chmod +x "$SCRIPT_NAME"
