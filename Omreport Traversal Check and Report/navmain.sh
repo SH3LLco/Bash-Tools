@@ -2,14 +2,8 @@
 # Author: SH3LL
 # Github: https://github.com/SH3LLco
 
-# function to get date
-function getDate {
-    date=$(date +%Y-%m-%d)
-    echo "$date"
-}
-
 # sets date variable
-date=$(getDate)
+date=$(date +%Y-%m-%d)
 
 # define working directory where scripts are located
 FILE_DIR="/path/to/script/folder/" # close the directory GOOD=/root/script/folder/ | BAD=/root/script/folder
