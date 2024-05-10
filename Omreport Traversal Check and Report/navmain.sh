@@ -1,4 +1,6 @@
 #!/bin/bash
+# Author: SH3LL
+# Github: https://github.com/SH3LLco
 
 # function to get date
 function getDate {
