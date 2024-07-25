@@ -65,8 +65,16 @@ do
 
     echo "Processing host: $host"
 
+    # Perform SSH authentication test
+    ssh -i "${SSH_KEY}" -o BatchMode=yes -o ConnectTimeout=5 "${USER}@${host}" "exit" || {
+        echo "SSH authentication failed for $host. Skipping..."
+        continue
+    }
+
+    echo "SSH authentication successful for $host."
+
     # SSH into the host, create the work directory
-    ssh -i "${SSH_KEY}" -o BatchMode=yes "$host" << EOF
+    ssh -i "${SSH_KEY}" -o BatchMode=yes "${USER}@${host}" << EOF
     if [ ! -d "$WORK_DIR" ]; then
         mkdir -p "$WORK_DIR"
         echo "$WORK_DIR created."
@@ -75,7 +83,7 @@ EOF
 
     # Copy the script to the remote host and execute it
     scp -i "${SSH_KEY}" ${FILE_DIR}/${SCRIPT_NAME} ${USER}@${host}:${WORK_DIR}/
-    ssh -i "${SSH_KEY}" -o BatchMode=yes "$host" << EOF
+    ssh -i "${SSH_KEY}" -o BatchMode=yes "${USER}@${host}" << EOF
     cd "$WORK_DIR/"
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
@@ -85,7 +93,7 @@ EOF
     scp -i "${SSH_KEY}" ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${REPORT_DIR}/${REPORT_NAME}.${host}
     
     # Remove the report file and script from the remote host
-    ssh -i "${SSH_KEY}" -o BatchMode=yes "$host" << EOF
+    ssh -i "${SSH_KEY}" -o BatchMode=yes "${USER}@${host}" << EOF
     cd "$WORK_DIR/"
     rm "${SCRIPT_NAME}"
     rm "${REPORT_NAME}"
