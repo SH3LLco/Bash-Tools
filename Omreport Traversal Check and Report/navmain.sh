@@ -100,5 +100,3 @@ echo "Combining all reports..."
 } > "$COMBINED_REPORT"
 
 echo "All tasks completed. Combined report is saved as $COMBINED_REPORT."
-
-echo "All tasks completed. Combined report is saved as $COMBINED_REPORT."
