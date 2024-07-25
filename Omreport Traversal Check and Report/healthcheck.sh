@@ -218,9 +218,6 @@ controllerids=($(getControllers "ID"))
 controllercount=${#controllerids[@]}
 totalcontrollerissues=()
 
-# sets file name
-file=$(getFileName)
-
 # --------------------------------------------</STATIC VARIABLES>--------------------------------------------
 
 # ----------------------------------------------<CHASSIS CHECK>----------------------------------------------
