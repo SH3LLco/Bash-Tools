@@ -8,8 +8,8 @@ date=$(date +%Y-%m-%d)
 # define working directory where scripts are located
 FILE_DIR="/path/to/script/folder"
 
-# define local host operation directory
-OP_DIR="/local/path/where/operating"
+# define local host report destination
+REPORT_DIR="/local/path/reports"
 
 # define safe working directory
 WORK_DIR="/tmp/healthcheck"
@@ -41,10 +41,10 @@ cd "$WORK_DIR"
 LOCAL_IP=$(hostname -I | awk '{print $1}')  # Get local IP, adjust if your IP configuration is different
 if grep -q "$LOCAL_IP" "$HOST_LIST"; then
     echo "Running script locally."
-    cp "${FILE_DIR}/${SCRIPT_NAME}" .
+    cd "${FILE_DIR}/"
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
-    mv "$REPORT_NAME" "$REPORT_NAME.$LOCAL_IP"
+    mv "$REPORT_NAME" "${REPORT_DIR}/${REPORT_NAME}.${LOCAL_IP}"
     cd -
 else
     echo "Local IP $LOCAL_IP is not in the list. Proceeding with remote hosts."
@@ -79,12 +79,13 @@ EOF
 EOF
 
     # Move the report file to the local host
-    scp ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${OP_DIR}/${REPORT_NAME}.${host}
+    scp ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${REPORT_DIR}/${REPORT_NAME}.${host}
     
     # Remove the report file from the remote host
     ssh -o BatchMode=yes "$host" << EOF
     cd "$WORK_DIR/"
     rm "${SCRIPT_NAME}"
+    rm "${REPORT_NAME}"
 EOF
 
 done < "$HOST_LIST"
