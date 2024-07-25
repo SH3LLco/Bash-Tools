@@ -6,7 +6,10 @@
 date=$(date +%Y-%m-%d)
 
 # define working directory where scripts are located
-FILE_DIR="/path/to/script/folder/" # close the directory GOOD=/root/script/folder/ | BAD=/root/script/folder
+FILE_DIR="/path/to/script/folder"
+
+# define local host operation directory
+OP_DIR="/local/path/where/operating"
 
 # define safe working directory
 WORK_DIR="/tmp/healthcheck"
@@ -38,7 +41,7 @@ cd "$WORK_DIR"
 LOCAL_IP=$(hostname -I | awk '{print $1}')  # Get local IP, adjust if your IP configuration is different
 if grep -q "$LOCAL_IP" "$HOST_LIST"; then
     echo "Running script locally."
-    cp "${FILE_DIR}${SCRIPT_NAME}" .
+    cp "${FILE_DIR}/${SCRIPT_NAME}" .
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
     mv "$REPORT_NAME" "$REPORT_NAME.$LOCAL_IP"
@@ -59,17 +62,29 @@ do
 
     echo "Processing host: $host"
 
-    # SSH into the host, create the directory, copy and execute the script
+    # SSH into the host, create the work directory
     ssh -o BatchMode=yes "$host" << EOF
     if [ ! -d "$WORK_DIR" ]; then
         mkdir -p "$WORK_DIR"
         echo "$WORK_DIR created."
     fi
-    cd "$WORK_DIR"
-    scp ${USER}@${LOCAL_IP}:${FILE_DIR}${SCRIPT_NAME} .
+EOF
+
+    # Copy the script to the remote host and execute it
+    scp ${FILE_DIR}/${SCRIPT_NAME} ${USER}@${host}:${WORK_DIR}/
+    ssh -o BatchMode=yes "$host" << EOF
+    cd "$WORK_DIR/"
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
-    scp "$REPORT_NAME" ${USER}@${LOCAL_IP}:${WORK_DIR}/$REPORT_NAME.$host
+EOF
+
+    # Move the report file to the local host
+    scp ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${OP_DIR}/${REPORT_NAME}.${host}
+    
+    # Remove the report file from the remote host
+    ssh -o BatchMode=yes "$host" << EOF
+    cd "$WORK_DIR/"
+    rm "${SCRIPT_NAME}"
 EOF
 
 done < "$HOST_LIST"
@@ -82,5 +97,7 @@ echo "Combining all reports..."
         cat "$report_file"
     done
 } > "$COMBINED_REPORT"
+
+echo "All tasks completed. Combined report is saved as $COMBINED_REPORT."
 
 echo "All tasks completed. Combined report is saved as $COMBINED_REPORT."
