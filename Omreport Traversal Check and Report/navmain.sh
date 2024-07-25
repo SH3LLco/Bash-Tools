@@ -26,8 +26,11 @@ COMBINED_REPORT="${date}_report.csv"
 # define the ssh username
 USER="username" # assumes SSH key-based authentication set up for each host in the list
 
+# define SSH KEY
+SSH_KEY="path/to/private/key"
+
 # Define host list file
-HOST_LIST="hosts.txt"
+HOST_LIST="${FILE_DIR}/hosts.txt"
 
 # setup local working environment
 if [ ! -d "$WORK_DIR" ]; then
@@ -44,7 +47,7 @@ if grep -q "$LOCAL_IP" "$HOST_LIST"; then
     cd "${FILE_DIR}/"
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
-    mv "$REPORT_NAME" "${REPORT_DIR}/${REPORT_NAME}.${LOCAL_IP}"
+    mv "$REPORT_NAME" "${REPORT_DIR}/$REPORT_NAME.$LOCAL_IP"
     cd -
 else
     echo "Local IP $LOCAL_IP is not in the list. Proceeding with remote hosts."
@@ -63,7 +66,7 @@ do
     echo "Processing host: $host"
 
     # SSH into the host, create the work directory
-    ssh -o BatchMode=yes "$host" << EOF
+    ssh -i "${SSH_KEY}" -o BatchMode=yes "$host" << EOF
     if [ ! -d "$WORK_DIR" ]; then
         mkdir -p "$WORK_DIR"
         echo "$WORK_DIR created."
@@ -71,18 +74,18 @@ do
 EOF
 
     # Copy the script to the remote host and execute it
-    scp ${FILE_DIR}/${SCRIPT_NAME} ${USER}@${host}:${WORK_DIR}/
-    ssh -o BatchMode=yes "$host" << EOF
+    scp -i "${SSH_KEY}" ${FILE_DIR}/${SCRIPT_NAME} ${USER}@${host}:${WORK_DIR}/
+    ssh -i "${SSH_KEY}" -o BatchMode=yes "$host" << EOF
     cd "$WORK_DIR/"
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
 EOF
 
     # Move the report file to the local host
-    scp ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${REPORT_DIR}/${REPORT_NAME}.${host}
+    scp -i "${SSH_KEY}" ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${REPORT_DIR}/${REPORT_NAME}.${host}
     
-    # Remove the report file from the remote host
-    ssh -o BatchMode=yes "$host" << EOF
+    # Remove the report file and script from the remote host
+    ssh -i "${SSH_KEY}" -o BatchMode=yes "$host" << EOF
     cd "$WORK_DIR/"
     rm "${SCRIPT_NAME}"
     rm "${REPORT_NAME}"
@@ -93,6 +96,7 @@ done < "$HOST_LIST"
 # Combine all the report files into one
 echo "Combining all reports..."
 {
+    cd "${REPORT_DIR}/"
     echo "$date"
     for report_file in "$REPORT_NAME".*; do
         cat "$report_file"
