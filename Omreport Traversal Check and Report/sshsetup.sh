@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# Specify the path to the local file you want to transfer
-local_file="/root/abilenetech/healthcheck/healthcheck.sh"
+# DO NOT USE THIS, this is just for some additional setup i had to do and is a broken skeleton because i used it multiple times for different purposes. 
+
+
+# Specify the path to the public key you want to transfer
+local_file="/user/path/file.pub"
 
 # Specify the remote directory where the file should be transferred
-remote_directory="/root/abilenetech/scripts/"
+remote_directory="/user/.ssh/"
 
 # Define the path to your private SSH key (optional)
 ssh_key="full/path/to/key"
@@ -22,7 +25,9 @@ do
 
     # SSH into the host, create the directory, copy and execute the script
     ssh -i "$ssh_key" -o BatchMode=yes "$host" << EOF
-    commands go here, one per line
+    commands go here, one per line. Each ssh setup is different so i left this empty. 
+    my setup was unique, but you likely want to cat the public key and append >> to authorize_keys
+    or if ssh isnt setup, this is where your commands go to set everything up per host. 
 EOF
 
 done < "$host_list"
