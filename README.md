@@ -32,3 +32,4 @@
 #### Does the following
 - yum update --security -y
 - logs the updates/errors to a log file
+- formats the log for easy review
