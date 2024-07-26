@@ -18,7 +18,6 @@
 - omreport controller vdisks
 - omreport controller pdisks
 
-=======================================================================================
 
 # RHEL Security Updates
 - use security-update.sh to run security updates on all hosts in hosts.txt, one per line.
