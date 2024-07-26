@@ -59,7 +59,6 @@ if grep -q "$LOCAL_IP" "$HOST_LIST"; then
     chmod +x "$SCRIPT_NAME"
     ./"$SCRIPT_NAME"
     mv "$REPORT_NAME" "${REPORT_DIR}/$REPORT_NAME.$LOCAL_IP"
-    cd -
 else
     echo "Local IP $LOCAL_IP is not in the list. Proceeding with remote hosts."
 fi
