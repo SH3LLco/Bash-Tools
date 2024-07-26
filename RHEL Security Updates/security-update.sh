@@ -18,12 +18,30 @@ LOG_FILE="path/to/${DATE}.log"
 echo "Security Update Log - ${DATE}" > "$LOG_FILE"
 echo "==============================" >> "$LOG_FILE"
 
+LOCAL_IP=$(hostname -I | awk '{print $1}')  # Get local IP, adjust if your IP configuration is different
+if grep -q "$LOCAL_IP" "$HOST_LIST"; then
+    echo "Running script locally."
+    echo -e "\n\n==============================" >> "$LOG_FILE"
+    echo "Processing host: $LOCAL_IP" >> "$LOG_FILE"
+    echo "==============================" >> "$LOG_FILE"
+    echo "Starting security update on $LOCAL_IP..."
+    yum update --security -y >> "$LOG_FILE"
+    echo "Security update completed on $LOCAL_IP..."
+else
+    echo "Local IP $LOCAL_IP is not in the list. Proceeding with remote hosts."
+fi
+
 # Read hosts into an array
 mapfile -t hosts < "$HOST_LIST"
 
 # Loop through the host array
 for host in "${hosts[@]}"; do
     host=$(echo "$host" | xargs)
+
+    if [ "$host" == "$LOCAL_IP" ]; then
+        echo "Skipping local host ($host)."
+        continue
+    fi
 
     # Add a separator for each host in the log file
     echo -e "\n\n==============================" >> "$LOG_FILE"
