@@ -1,4 +1,5 @@
 # Omreport Traversal Check and Report
+- Automate checking of omreport chassis, controllers, vdisks, and pdisks. 
 - Use navmain.sh to execute traversal
 - Use healthcheck.sh to execute a single report
 
