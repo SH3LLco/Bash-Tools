@@ -15,7 +15,7 @@ HOST_LIST="path/to/hosts.txt"
 LOG_FILE="path/to/${DATE}.log"
 
 # Initialize log file
-echo "Security Update Log - $(date)" > "$LOG_FILE"
+echo "Security Update Log - ${DATE}" > "$LOG_FILE"
 echo "==============================" >> "$LOG_FILE"
 
 # Read hosts into an array
