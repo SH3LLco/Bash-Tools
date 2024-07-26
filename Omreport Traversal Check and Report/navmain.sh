@@ -6,10 +6,10 @@
 date=$(date +%Y-%m-%d)
 
 # define working directory where scripts are located
-FILE_DIR="/path/to/script/folder"
+FILE_DIR="/path/to/scripts"
 
 # define local host report destination
-REPORT_DIR="/local/path/reports"
+REPORT_DIR="/path/to/reports"
 
 # define safe working directory
 WORK_DIR="/tmp/healthcheck"
@@ -21,13 +21,13 @@ SCRIPT_NAME="healthcheck.sh"
 REPORT_NAME="report.csv"
 
 # define the combined report name
-COMBINED_REPORT="${date}_report.csv"
+COMBINED_REPORT="${date}_combined.csv"
 
 # define the ssh username
-USER="username" # assumes SSH key-based authentication set up for each host in the list
+USER="user" # assumes SSH key-based authentication set up for each host in the list
 
 # define SSH KEY
-SSH_KEY="path/to/private/key"
+SSH_KEY="/user/.ssh/key"
 
 # Define host list file
 HOST_LIST="${FILE_DIR}/hosts.txt"
@@ -39,6 +39,17 @@ if [ ! -d "$WORK_DIR" ]; then
 fi
 cd "$WORK_DIR"
 
+# Check if hosts file exists
+if [ ! -f "$HOST_LIST" ]; then
+    echo "Host list file $HOST_LIST does not exist. Exiting."
+    exit 1
+fi
+
+# Check if report directory exists
+if [ ! -d "$REPORT_DIR" ]; then
+    mkdir -p "$REPORT_DIR"
+    echo "$REPORT_DIR created."
+fi
 
 # Check if local IP is in host list and run locally if present
 LOCAL_IP=$(hostname -I | awk '{print $1}')  # Get local IP, adjust if your IP configuration is different
@@ -53,9 +64,13 @@ else
     echo "Local IP $LOCAL_IP is not in the list. Proceeding with remote hosts."
 fi
 
+# read hosts into array
+mapfile -t hosts < "$HOST_LIST"
+
 # Loop through the host list
-while IFS= read -r host
-do
+for host in "${hosts[@]}"; do
+    
+    host=$(echo "$host" | xargs)
 
     # Check if the current line is the local IP. If it is, skip this iteration.
     if [ "$host" == "$LOCAL_IP" ]; then
@@ -66,40 +81,47 @@ do
     echo "Processing host: $host"
 
     # Perform SSH authentication test
-    ssh -i "${SSH_KEY}" -o BatchMode=yes -o ConnectTimeout=5 "${USER}@${host}" "exit" || {
+    if ! ssh -i "${SSH_KEY}" -T -o BatchMode=yes -o ConnectTimeout=5 "${USER}@${host}" "exit"; then
         echo "SSH authentication failed for $host. Skipping..."
         continue
-    }
+    fi
 
     echo "SSH authentication successful for $host."
 
     # SSH into the host, create the work directory
-    ssh -i "${SSH_KEY}" -o BatchMode=yes "${USER}@${host}" << EOF
-    if [ ! -d "$WORK_DIR" ]; then
-        mkdir -p "$WORK_DIR"
-        echo "$WORK_DIR created."
-    fi
+    ssh -i "${SSH_KEY}" -T -o BatchMode=yes -o ConnectTimeout=5 "${USER}@${host}" << EOF
+if [ ! -d "$WORK_DIR" ]; then
+    mkdir -p "$WORK_DIR"
+    echo "$WORK_DIR created."
+fi
 EOF
 
     # Copy the script to the remote host and execute it
-    scp -i "${SSH_KEY}" ${FILE_DIR}/${SCRIPT_NAME} ${USER}@${host}:${WORK_DIR}/
-    ssh -i "${SSH_KEY}" -o BatchMode=yes "${USER}@${host}" << EOF
-    cd "$WORK_DIR/"
-    chmod +x "$SCRIPT_NAME"
-    ./"$SCRIPT_NAME"
+    if ! scp -i "${SSH_KEY}" -o ConnectTimeout=5 "${FILE_DIR}/${SCRIPT_NAME}" "${USER}@${host}:${WORK_DIR}/"; then
+        echo "Failed to copy script to $host. Skipping..."
+        continue
+    fi
+
+    ssh -i "${SSH_KEY}" -T -o BatchMode=yes -o ConnectTimeout=5 "${USER}@${host}" << EOF
+cd "$WORK_DIR/"
+chmod +x "$SCRIPT_NAME"
+./"$SCRIPT_NAME"
 EOF
 
     # Move the report file to the local host
-    scp -i "${SSH_KEY}" ${USER}@${host}:${WORK_DIR}/${REPORT_NAME} ${REPORT_DIR}/${REPORT_NAME}.${host}
+    if ! scp -i "${SSH_KEY}" -o ConnectTimeout=5 "${USER}@${host}:${WORK_DIR}/${REPORT_NAME}" "${REPORT_DIR}/${REPORT_NAME}.${host}"; then
+        echo "Failed to retrieve report from $host. Skipping..."
+        continue
+    fi
     
     # Remove the report file and script from the remote host
-    ssh -i "${SSH_KEY}" -o BatchMode=yes "${USER}@${host}" << EOF
-    cd "$WORK_DIR/"
-    rm "${SCRIPT_NAME}"
-    rm "${REPORT_NAME}"
+    ssh -i "${SSH_KEY}" -T -o BatchMode=yes -o ConnectTimeout=5 "${USER}@${host}" << EOF
+cd "$WORK_DIR/"
+rm "${SCRIPT_NAME}"
+rm "${REPORT_NAME}"
 EOF
 
-done < "$HOST_LIST"
+done
 
 # Combine all the report files into one
 echo "Combining all reports..."
@@ -108,7 +130,11 @@ echo "Combining all reports..."
     echo "$date"
     for report_file in "$REPORT_NAME".*; do
         cat "$report_file"
+        echo -e "\n\n\n\n"
     done
-} > "$COMBINED_REPORT"
+} > "${REPORT_DIR}/${COMBINED_REPORT}"
+
+cd "${REPORT_DIR}/"
+rm -f ./report.csv.*
 
 echo "All tasks completed. Combined report is saved as $COMBINED_REPORT."
