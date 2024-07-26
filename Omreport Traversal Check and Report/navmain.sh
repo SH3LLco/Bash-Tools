@@ -21,7 +21,7 @@ SCRIPT_NAME="healthcheck.sh"
 REPORT_NAME="report.csv"
 
 # define the combined report name
-COMBINED_REPORT="${date}_combined.csv"
+COMBINED_REPORT="${date}.csv"
 
 # define the ssh username
 USER="user" # assumes SSH key-based authentication set up for each host in the list
